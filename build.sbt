@@ -1,26 +1,55 @@
-import sbt.Keys.resolvers
+import sbt.Keys.libraryDependencies
 
 name := "transporterOrganizations-root"
+organization in ThisBuild := "com.experiments"
+version in ThisBuild := "1.0.0-SNAPSHOT"
+
+scalaVersion in ThisBuild := "2.12.4"
+
+val macwire = "com.softwaremill.macwire" %% "macros" % "2.2.5" % "provided"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1" % Test
 
 lazy val root = (project in file("."))
-  .settings(commonSettings)
-  .dependsOn(carriers, organizations)
-  .aggregate(carriers, organizations)
-
-lazy val commonSettings = Seq(
-  version := "1.0.0-SNAPSHOT",
-  scalaVersion := "2.12.4",
-  resolvers ++= Seq(
-    "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
-    "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/")
-)
-
-libraryDependencies ++= Seq(jdbc, ehcache, ws, specs2 % Test, guice)
+  .aggregate(`carriers-api`, carriers, `organizations-api`, organizations)
 
 lazy val carriers = project
-  .settings(commonSettings)
-  .enablePlugins(PlayScala)
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslPersistenceCassandra,
+      lagomScaladslKafkaBroker,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
+    )
+  )
+  .settings(lagomForkedTestSettings: _*)
+  .dependsOn(`carriers-api`)
+
+lazy val `carriers-api` = project
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
 
 lazy val organizations = project
-  .settings(commonSettings)
-  .enablePlugins(PlayScala)
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslPersistenceCassandra,
+      lagomScaladslKafkaBroker,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
+    )
+  )
+  .settings(lagomForkedTestSettings: _*)
+  .dependsOn(`carriers-api`, `organizations-api`)
+
+lazy val `organizations-api` = project
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
