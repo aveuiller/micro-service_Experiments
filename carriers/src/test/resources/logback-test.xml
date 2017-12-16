@@ -1,0 +1,8 @@
+<configuration>
+
+    <logger name="org.apache.cassandra" level="ERROR" />
+    <logger name="play" level="INFO" />
+    <logger name="akka" level="WARN"/>
+    <logger name="com.lightbend.lagom" level="INFO"/>
+
+</configuration>
