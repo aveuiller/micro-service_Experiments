@@ -37,6 +37,8 @@ class OrganizationsServiceSpec extends AsyncWordSpec with Eventually with Matche
     override def track(id: String): ServiceCall[Location, Done] = { _ => Future.successful(Done) }
 
     override def carrierCreatedTopic(): Topic[CarrierCreated] = stub.topic
+
+    override def getLocation(id: String): ServiceCall[NotUsed, Location] = { _ => Future.successful(Location(1, 2, 3)) }
   }
 
   private val server = ServiceTest.startServer(

@@ -64,7 +64,7 @@ class CarriersServicesSpec extends AsyncWordSpec with Matchers with BeforeAndAft
       client.create().invoke(carrier).flatMap { response =>
         response.id should !==(None)
         client.fetch(response.id.get).invoke().map { result =>
-          result should ===(carrier)
+          result should ===(carrier.copy(id = response.id))
         }
       }
     }

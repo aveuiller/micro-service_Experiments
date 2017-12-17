@@ -1,6 +1,7 @@
 package com.experiments.carriers.entities
 
 import akka.Done
+import com.experiments.carriers.api.models.Location
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 class CarrierEntity extends PersistentEntity {
@@ -45,6 +46,9 @@ class CarrierEntity extends PersistentEntity {
 
     .onReadOnlyCommand[GetCarrier.type, CarrierState] {
     case (GetCarrier, ctx, state) => ctx.reply(state)
+  }
+    .onReadOnlyCommand[GetLocation.type, Location] {
+    case (GetLocation, ctx, state) => ctx.reply(state.location)
   }
 }
 

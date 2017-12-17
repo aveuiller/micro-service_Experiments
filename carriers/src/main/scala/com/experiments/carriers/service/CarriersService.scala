@@ -6,7 +6,7 @@ import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
 import com.experiments.carriers.api.models.{Carrier, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
-import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, CarrierEvent, GetCarrier, LicenseType, TrackCarrier}
+import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, CarrierEvent, GetCarrier, GetLocation, LicenseType, TrackCarrier}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -41,7 +41,8 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
     ref.ask(GetCarrier) map { state =>
       Carrier(
         state.name, state.age, state.organizationSiret,
-        Some(state.hasALicense), Some(state.hasBLicense), Some(state.hasCLicense)
+        Some(state.hasALicense), Some(state.hasBLicense), Some(state.hasCLicense),
+        Some(id)
       )
     }
   }
@@ -49,6 +50,11 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
   override def track(id: String): ServiceCall[Location, Done] = ServiceCall { location =>
     val ref = persistentEntityRegistry.refFor[CarrierEntity](id)
     ref.ask(TrackCarrier(location)) map { _ => Done }
+  }
+
+  def getLocation(id: String): ServiceCall[NotUsed, Location] = ServiceCall { _ =>
+    val ref = persistentEntityRegistry.refFor[CarrierEntity](id)
+    ref.ask(GetLocation)
   }
 
   override def carrierCreatedTopic(): Topic[CarrierCreated] =

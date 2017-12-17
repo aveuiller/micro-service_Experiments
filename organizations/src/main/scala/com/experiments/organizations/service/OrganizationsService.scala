@@ -71,7 +71,8 @@ class OrganizationsService(carrierService: CarriersServiceApi,
           _.map(fromApi =>
             Carrier(
               fromApi.name, fromApi.age,
-              fromApi.has_permis_a, fromApi.has_permis_b, fromApi.has_permis_c
+              fromApi.has_permis_a, fromApi.has_permis_b, fromApi.has_permis_c,
+              fromApi.id
             )
           )
         )

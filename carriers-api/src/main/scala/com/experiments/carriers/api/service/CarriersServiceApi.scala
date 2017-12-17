@@ -20,6 +20,8 @@ trait CarriersServiceApi extends Service {
 
   def track(id: String): ServiceCall[Location, Done]
 
+  def getLocation(id: String): ServiceCall[NotUsed, Location]
+
   /**
    * This gets published to Kafka.
    */
@@ -32,7 +34,8 @@ trait CarriersServiceApi extends Service {
       .withCalls(
         restCall(Method.POST, "/carriers", create _),
         pathCall("/carriers/:id", fetch _),
-        restCall(Method.PUT, "/carriers/:id/tracking", track _)
+        restCall(Method.PUT, "/carriers/:id/tracking", track _),
+        pathCall("/carriers/:id/tracking", getLocation _)
       )
       .withTopics(
         topic(CarriersServiceApi.TOPIC_NAME, carrierCreatedTopic _)
