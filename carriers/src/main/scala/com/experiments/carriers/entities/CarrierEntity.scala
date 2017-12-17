@@ -1,5 +1,6 @@
 package com.experiments.carriers.entities
 
+import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 class CarrierEntity extends PersistentEntity {
@@ -27,10 +28,21 @@ class CarrierEntity extends PersistentEntity {
         }
       }
   }
+    .onCommand[TrackCarrier, Done] {
+    case (TrackCarrier(location), ctx, state) =>
+      ctx.thenPersist(TrackingAdded(location)) { _ =>
+        ctx.reply(Done)
+      }
+  }
     .onEvent {
       case (CarrierAdded(name, age, ownedLicense, organizationSiret), state) =>
-        CarrierState(name, age, ownedLicense, organizationSiret)
+        state.copy(name, age, ownedLicense, organizationSiret)
     }
+    .onEvent {
+      case (TrackingAdded(location), state) =>
+        state.copy(location = location)
+    }
+
     .onReadOnlyCommand[GetCarrier.type, CarrierState] {
     case (GetCarrier, ctx, state) => ctx.reply(state)
   }

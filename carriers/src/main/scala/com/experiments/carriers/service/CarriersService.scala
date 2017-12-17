@@ -6,7 +6,7 @@ import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
 import com.experiments.carriers.api.models.{Carrier, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
-import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, CarrierEvent, GetCarrier, LicenseType}
+import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, CarrierEvent, GetCarrier, LicenseType, TrackCarrier}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -14,7 +14,7 @@ import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
                      (implicit ec: ExecutionContext) extends CarriersServiceApi {
@@ -47,8 +47,8 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
   }
 
   override def track(id: String): ServiceCall[Location, Done] = ServiceCall { location =>
-    // TODO: Track user
-    Future.successful(Done)
+    val ref = persistentEntityRegistry.refFor[CarrierEntity](id)
+    ref.ask(TrackCarrier(location)) map { _ => Done }
   }
 
   override def carrierCreatedTopic(): Topic[CarrierCreated] =

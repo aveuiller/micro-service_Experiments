@@ -1,5 +1,7 @@
 package com.experiments.carriers.entities
 
+import akka.Done
+import com.experiments.carriers.api.models.Location
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, JsSuccess, Json, Reads, Writes}
 
@@ -27,3 +29,5 @@ case object GetCarrier extends CarrierCommand[CarrierState] {
     Writes[GetCarrier.type](_ => Json.obj())
   )
 }
+
+final case class TrackCarrier(Location: Location) extends CarrierCommand[Done]

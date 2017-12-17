@@ -29,7 +29,8 @@ lazy val carriers = project
 lazy val `carriers-api` = project
   .settings(
     libraryDependencies ++= Seq(
-      lagomScaladslApi
+      lagomScaladslApi,
+      "com.typesafe.play" %% "play-json-joda" % "2.6.8"
     )
   )
 

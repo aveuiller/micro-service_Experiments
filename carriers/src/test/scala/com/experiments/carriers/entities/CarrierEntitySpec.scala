@@ -86,7 +86,7 @@ class CarrierEntitySpec extends WordSpecLike with Matchers with BeforeAndAfterAl
       outcome.state.age should ===(age)
       outcome.state.ownedLicenses should ===(licenses)
       outcome.state.organizationSiret should ===(siret)
-      outcome.replies should ===(List(CarrierState(name, age, licenses, siret)))
+      outcome.replies should ===(List(CarrierState(name, age, licenses, siret, CarrierState.empty.location)))
       outcome.issues should be(Nil)
     }
   }
