@@ -20,6 +20,7 @@ object OrganizationSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[AddOrganization],
     JsonSerializer[AddCarrier],
     JsonSerializer[GetCarriers.type], // Dummy format to avoid serialization crash in unit tests
+    JsonSerializer[GetOrganization.type], // Dummy format to avoid serialization crash in unit tests
     // Events
     JsonSerializer[OrganizationAdded],
     JsonSerializer[CarrierAdded],

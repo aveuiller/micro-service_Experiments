@@ -37,12 +37,15 @@ class OrganizationEntity extends PersistentEntity {
     .onReadOnlyCommand[GetCarriers.type, Carriers] {
     case (GetCarriers, ctx, state) => ctx.reply(Carriers(state.carriers))
   }
+    .onReadOnlyCommand[GetOrganization.type, OrganizationState] {
+    case (GetOrganization, ctx, state) => ctx.reply(state)
+  }
     .onEvent {
       case (CarrierAdded(carrierId), state) =>
-        OrganizationState(state.name, state.postalCode, state.carriers :+ carrierId, validated = true)
+        state.copy(carriers = state.carriers :+ carrierId, validated = true)
     }
     .onEvent {
       case (OrganizationAdded(name, postalCodes), state) =>
-        OrganizationState(name, postalCodes, state.carriers, state.validated)
+        state.copy(name, postalCodes)
     }
 }

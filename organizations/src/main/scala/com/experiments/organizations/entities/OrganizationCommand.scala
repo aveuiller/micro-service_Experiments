@@ -22,6 +22,13 @@ object AddCarrier {
   implicit val format: Format[AddCarrier] = Json.format
 }
 
+case object GetOrganization extends OrganizationCommand[OrganizationState] {
+  // Dummy format to avoid serialization crash in unit tests
+  implicit val format: Format[GetOrganization.type] = Format(
+    Reads[GetOrganization.type](_ => JsSuccess(GetOrganization)),
+    Writes[GetOrganization.type](_ => Json.obj())
+  )
+}
 
 case object GetCarriers extends OrganizationCommand[Carriers] {
   // Dummy format to avoid serialization crash in unit tests

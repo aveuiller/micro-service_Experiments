@@ -5,7 +5,7 @@ import com.experiments.organizations.api.service.OrganizationsServiceApi
 import com.experiments.organizations.entities.{OrganizationEntity, OrganizationSerializerRegistry}
 import com.experiments.organizations.service.OrganizationsService
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
-import com.lightbend.lagom.scaladsl.persistence.cassandra.CassandraPersistenceComponents
+import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraPersistenceComponents, ReadSideCassandraPersistenceComponents}
 import com.lightbend.lagom.scaladsl.server.{LagomApplication, LagomApplicationContext}
 import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -14,6 +14,7 @@ abstract class OrganizationsApplication(context: LagomApplicationContext)
   extends LagomApplication(context)
     with CassandraPersistenceComponents
     with LagomKafkaClientComponents
+    with ReadSideCassandraPersistenceComponents
     with AhcWSComponents {
 
   // Bind the service that this server provides

@@ -1,22 +1,27 @@
 package com.experiments.organizations.service
 
+import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
 import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
 import com.experiments.carriers.api.service.CarriersServiceApi
-import com.experiments.organizations.api.models.{Carrier, Organization}
+import com.experiments.organizations.api.models.{Carrier, GroupedOrganizations, Organization}
 import com.experiments.organizations.api.service.OrganizationsServiceApi
-import com.experiments.organizations.entities.{AddCarrier, AddOrganization, Carriers, GetCarriers, OrganizationEntity}
+import com.experiments.organizations.entities.{AddCarrier, AddOrganization, Carriers, GetCarriers, OrganizationEntity, OrganizationEvent}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
-import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
+import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
+import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRegistry, ReadSide}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class OrganizationsService(carrierService: CarriersServiceApi,
-                           persistentEntityRegistry: PersistentEntityRegistry)
-                          (implicit ec: ExecutionContext) extends OrganizationsServiceApi {
+                           readSide: ReadSide,
+                           persistentEntityRegistry: PersistentEntityRegistry,
+                           cassandraSession: CassandraSession,
+                           cassandraReadSide: CassandraReadSide
+                          )(implicit ec: ExecutionContext, mat: Materializer) extends OrganizationsServiceApi {
 
   // Subscribe to carrier creation.
   carrierService.carrierCreatedTopic().subscribe
@@ -27,6 +32,9 @@ class OrganizationsService(carrierService: CarriersServiceApi,
         Done
       }
     )
+
+  // Register our byPostalCode read side
+  readSide.register[OrganizationEvent](new ByPostalCodeProcessor(cassandraSession, cassandraReadSide))
 
   override def create(): ServiceCall[Organization, Done] = ServiceCall { organization =>
     if (organization.siret.isEmpty) {
@@ -77,5 +85,12 @@ class OrganizationsService(carrierService: CarriersServiceApi,
           )
         )
     }
+  }
+
+  override def groupByPostalCodes(): ServiceCall[NotUsed, List[GroupedOrganizations]] = ServiceCall { _ =>
+    ByPostalCodeProcessor.groupedSelection(cassandraSession)
+      .runFold(List[GroupedOrganizations]()) { (list, groupedOrga) =>
+        list :+ groupedOrga
+      }
   }
 }

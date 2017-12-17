@@ -107,6 +107,7 @@ class OrganizationsServiceSpec extends AsyncWordSpec with Eventually with Matche
       client.create().invoke(organization) flatMap { _ =>
         producerStub.send(CarrierCreated("id", id))
 
+        // Wait for event to be processed
         eventually(timeout(Span(5, Seconds))) {
           client.carriers(id).invoke().map { result =>
             result should ===(result
@@ -117,4 +118,26 @@ class OrganizationsServiceSpec extends AsyncWordSpec with Eventually with Matche
       }
     }
   }
+
+  // TODO: See how to register a persistent ReadSide on tests
+  //  "groupByPostalCodes" should {
+  //    "Return the organization sirets grouped by postal code" in {
+  //      val pcFirstOrga = "59000"
+  //      val pcBothOrga = "27000"
+  //      val organization1 = organization.copy(siret = "siret", postalCodes = List(pcFirstOrga, pcBothOrga))
+  //      val organization2 = organization.copy(siret = "siret2", postalCodes = List(pcBothOrga))
+  //
+  //      client.create().invoke(organization1).flatMap { resultOrga =>
+  //        client.create().invoke(organization2).flatMap { resultOrga2 =>
+  //          // Wait for event to be processed
+  //          eventually(timeout(Span(5, Seconds))) {
+  //            client.groupByPostalCodes().invoke() map { grouped =>
+  //              grouped should contain(GroupedOrganizations(pcBothOrga, List(organization1.siret, organization2.siret)))
+  //              grouped should contain(GroupedOrganizations(pcFirstOrga, List(organization1.siret)))
+  //            }
+  //          }
+  //        }
+  //      }
+  //    }
+  //  }
 }
