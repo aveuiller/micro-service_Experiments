@@ -4,9 +4,10 @@ import java.util.UUID
 
 import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
-import com.experiments.carriers.api.models.{Carrier, Location}
+import com.experiments.carriers.api.models.{Carrier, GroupedCarriers, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
 import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, GetCarrier, LicenseType, TrackCarrier}
+import com.experiments.organizations.api.service.OrganizationsServiceApi
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -14,9 +15,11 @@ import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
+class CarriersService(persistentEntityRegistry: PersistentEntityRegistry,
+                      organizationsService: OrganizationsServiceApi
+                     )
                      (implicit ec: ExecutionContext) extends CarriersServiceApi {
   override def create(): ServiceCall[Carrier, Carrier] = ServiceCall { carrier =>
     // TODO: Handle possible ID collision
@@ -78,5 +81,23 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
       case CarrierAdded(name, age, ownedLicense, organizationSiret) =>
         CarrierCreated(event.entityId, organizationSiret)
     }
+  }
+
+  override def groupByPostalCodes(): ServiceCall[NotUsed, List[GroupedCarriers]] = ServiceCall { _ =>
+    organizationsService.groupByPostalCodes().invoke().flatMap { groupedOrganizations =>
+      Future.sequence(
+        groupedOrganizations.map { groupedOrganization =>
+          retrieveCarriersForOrganizations(groupedOrganization.organizations) map { carriers =>
+            GroupedCarriers(groupedOrganization.postalCode, carriers.flatMap(_.id).distinct)
+          }
+        })
+    }
+  }
+
+  // TODO: We can optimize network communications by creating a carriers(siret: id) method in this service.
+  private def retrieveCarriersForOrganizations(organizations: List[String]): Future[List[com.experiments.organizations.api.models.Carrier]] = {
+    Future.sequence(
+      organizations.map(organizationsService.carriers(_).invoke())
+    ).map(_.flatten)
   }
 }

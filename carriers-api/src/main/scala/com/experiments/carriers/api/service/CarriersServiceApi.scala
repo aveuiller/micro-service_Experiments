@@ -2,7 +2,7 @@ package com.experiments.carriers.api.service
 
 import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
-import com.experiments.carriers.api.models.{Carrier, Location}
+import com.experiments.carriers.api.models.{Carrier, GroupedCarriers, Location}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
@@ -22,6 +22,8 @@ trait CarriersServiceApi extends Service {
 
   def getLocation(id: String): ServiceCall[NotUsed, Location]
 
+  def groupByPostalCodes(): ServiceCall[NotUsed, List[GroupedCarriers]]
+
   /**
    * This gets published to Kafka.
    */
@@ -33,7 +35,9 @@ trait CarriersServiceApi extends Service {
     named("carriers")
       .withCalls(
         restCall(Method.POST, "/carriers", create _),
+        pathCall("/carriers/by_postal_codes", groupByPostalCodes _),
         pathCall("/carriers/:id", fetch _),
+        // Tracking
         restCall(Method.PUT, "/carriers/:id/tracking", track _),
         pathCall("/carriers/:id/tracking", getLocation _)
       )

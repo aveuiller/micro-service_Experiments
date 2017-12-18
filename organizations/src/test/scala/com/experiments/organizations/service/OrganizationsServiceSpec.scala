@@ -3,7 +3,7 @@ package com.experiments.organizations.service
 import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
 import com.experiments.carriers.api.models
-import com.experiments.carriers.api.models.Location
+import com.experiments.carriers.api.models.{GroupedCarriers, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
 import com.experiments.organizations.OrganizationsApplication
 import com.experiments.organizations.api.models.{Carrier, Organization}
@@ -39,6 +39,10 @@ class OrganizationsServiceSpec extends AsyncWordSpec with Eventually with Matche
     override def carrierCreatedTopic(): Topic[CarrierCreated] = stub.topic
 
     override def getLocation(id: String): ServiceCall[NotUsed, Location] = { _ => Future.successful(Location(1, 2, 3)) }
+
+    override def groupByPostalCodes(): ServiceCall[NotUsed, List[GroupedCarriers]] = { _ =>
+      Future.successful(List(GroupedCarriers("59000", List())))
+    }
   }
 
   private val server = ServiceTest.startServer(
@@ -132,6 +136,7 @@ class OrganizationsServiceSpec extends AsyncWordSpec with Eventually with Matche
   //          // Wait for event to be processed
   //          eventually(timeout(Span(5, Seconds))) {
   //            client.groupByPostalCodes().invoke() map { grouped =>
+  //              grouped.size should ===(2)
   //              grouped should contain(GroupedOrganizations(pcBothOrga, List(organization1.siret, organization2.siret)))
   //              grouped should contain(GroupedOrganizations(pcFirstOrga, List(organization1.siret)))
   //            }

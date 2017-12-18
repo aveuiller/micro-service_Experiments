@@ -24,7 +24,7 @@ lazy val carriers = project
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(`carriers-api`)
+  .dependsOn(`organizations-api`, `carriers-api`)
 
 lazy val `carriers-api` = project
   .settings(
