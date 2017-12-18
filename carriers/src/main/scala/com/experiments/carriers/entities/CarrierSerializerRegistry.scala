@@ -20,9 +20,10 @@ object CarrierSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[AddCarrier],
     JsonSerializer[AddCarrierDone],
     JsonSerializer[GetCarrier.type], // Dummy format to avoid serialization crash in unit tests
-    JsonSerializer[GetLocation.type], // Dummy format to avoid serialization crash in unit tests
+    JsonSerializer[TrackCarrier],
     // Events
     JsonSerializer[CarrierAdded],
+    JsonSerializer[TrackingAdded],
     // States
     JsonSerializer[CarrierState],
     JsonSerializer[LicenseType.Value]

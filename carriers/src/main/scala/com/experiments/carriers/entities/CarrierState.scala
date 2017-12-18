@@ -8,14 +8,15 @@ object CarrierState {
   implicit val licenseTypeFormat = LicenseType.format
   implicit val format: Format[CarrierState] = Json.format
 
-  val empty = CarrierState("", 0, Seq(), "", Location(0, 0, 0, new DateTime(0)))
+  val empty = CarrierState("", 0, Seq(), "", Location(0, 0, 0, new DateTime(0)), validated = false)
 }
 
 final case class CarrierState(name: String,
                               age: Int,
                               ownedLicenses: Seq[LicenseType.Value],
                               organizationSiret: String,
-                              location: Location) {
+                              location: Location,
+                              validated: Boolean) {
   def hasALicense: Boolean = ownedLicenses.contains(LicenseType.A)
 
   def hasBLicense: Boolean = ownedLicenses.contains(LicenseType.B)

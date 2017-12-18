@@ -1,7 +1,8 @@
 package com.experiments.carriers.service
 
+import akka.Done
 import com.experiments.carriers.CarriersApplication
-import com.experiments.carriers.api.models.Carrier
+import com.experiments.carriers.api.models.{Carrier, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
 import com.lightbend.lagom.scaladsl.server.LocalServiceLocator
@@ -58,13 +59,45 @@ class CarriersServicesSpec extends AsyncWordSpec with Matchers with BeforeAndAft
   }
 
   "fetch" should {
-    "Return every carrier linked to the Organization" in {
+    "Return every carrier linked to the Organization with filled ID" in {
       val id = "carrierId"
 
       client.create().invoke(carrier).flatMap { response =>
         response.id should !==(None)
         client.fetch(response.id.get).invoke().map { result =>
           result should ===(carrier.copy(id = response.id))
+        }
+      }
+    }
+  }
+
+  private val location = Location(1, 2, 3)
+  "track" should {
+    "Reject the tracking if the user is not valid" in {
+      assertThrows[BadRequest] {
+        Await.result(client.track("id").invoke(location), 10.second)
+      }
+    }
+
+    "Create new tracking location if the user is valid" in {
+      client.create().invoke(carrier).flatMap { carrier =>
+        carrier.id should !==(None)
+        client.track(carrier.id.get).invoke(location).map { response =>
+          response should ===(Done)
+        }
+      }
+    }
+
+    "getLocation" should {
+      "Retrieve the last tracking location" in {
+        client.create().invoke(carrier).flatMap { carrier =>
+          carrier.id should !==(None)
+          client.track(carrier.id.get).invoke(location).flatMap { response =>
+            response should ===(Done)
+            client.getLocation(carrier.id.get).invoke().map { result =>
+              result should ===(location)
+            }
+          }
         }
       }
     }

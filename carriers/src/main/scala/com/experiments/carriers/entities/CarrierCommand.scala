@@ -30,12 +30,8 @@ case object GetCarrier extends CarrierCommand[CarrierState] {
   )
 }
 
-case object GetLocation extends CarrierCommand[Location] {
-  // Dummy format to avoid serialization crash in unit tests
-  implicit val format: Format[GetLocation.type] = Format(
-    Reads[GetLocation.type](_ => JsSuccess(GetLocation)),
-    Writes[GetLocation.type](_ => Json.obj())
-  )
-}
-
 final case class TrackCarrier(Location: Location) extends CarrierCommand[Done]
+
+case object TrackCarrier {
+  implicit val format: Format[TrackCarrier] = Json.format
+}

@@ -1,7 +1,6 @@
 package com.experiments.carriers.entities
 
 import akka.Done
-import com.experiments.carriers.api.models.Location
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 class CarrierEntity extends PersistentEntity {
@@ -31,13 +30,18 @@ class CarrierEntity extends PersistentEntity {
   }
     .onCommand[TrackCarrier, Done] {
     case (TrackCarrier(location), ctx, state) =>
-      ctx.thenPersist(TrackingAdded(location)) { _ =>
-        ctx.reply(Done)
+      if (!state.validated) {
+        ctx.invalidCommand("The carrier must be valid to add tracking.")
+        ctx.done
+      } else {
+        ctx.thenPersist(TrackingAdded(location)) { _ =>
+          ctx.reply(Done)
+        }
       }
   }
     .onEvent {
       case (CarrierAdded(name, age, ownedLicense, organizationSiret), state) =>
-        state.copy(name, age, ownedLicense, organizationSiret)
+        state.copy(name, age, ownedLicense, organizationSiret, validated = true)
     }
     .onEvent {
       case (TrackingAdded(location), state) =>
@@ -46,9 +50,6 @@ class CarrierEntity extends PersistentEntity {
 
     .onReadOnlyCommand[GetCarrier.type, CarrierState] {
     case (GetCarrier, ctx, state) => ctx.reply(state)
-  }
-    .onReadOnlyCommand[GetLocation.type, Location] {
-    case (GetLocation, ctx, state) => ctx.reply(state.location)
   }
 }
 
