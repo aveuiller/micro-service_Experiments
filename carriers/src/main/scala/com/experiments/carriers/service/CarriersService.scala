@@ -6,7 +6,7 @@ import akka.{Done, NotUsed}
 import com.experiments.carriers.api.events.CarrierCreated
 import com.experiments.carriers.api.models.{Carrier, Location}
 import com.experiments.carriers.api.service.CarriersServiceApi
-import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, CarrierEvent, GetCarrier, GetLocation, LicenseType, TrackCarrier}
+import com.experiments.carriers.entities.{AddCarrier, CarrierAdded, CarrierEntity, GetCarrier, GetLocation, LicenseType, TrackCarrier}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -59,7 +59,7 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
 
   override def carrierCreatedTopic(): Topic[CarrierCreated] =
     TopicProducer.singleStreamWithOffset { fromOffset =>
-      persistentEntityRegistry.eventStream(CarrierEvent.Tag, fromOffset)
+      persistentEntityRegistry.eventStream(CarrierAdded.Tag, fromOffset)
         .map(ev => (convertEvent(ev), ev.offset))
     }
 
@@ -69,7 +69,7 @@ class CarriersService(persistentEntityRegistry: PersistentEntityRegistry)
    * @param event The event to convert.
    * @return The converted event.
    */
-  private def convertEvent(event: EventStreamElement[CarrierEvent]): CarrierCreated = {
+  private def convertEvent(event: EventStreamElement[CarrierAdded]): CarrierCreated = {
     event.event match {
       case CarrierAdded(name, age, ownedLicense, organizationSiret) =>
         CarrierCreated(event.entityId, organizationSiret)
